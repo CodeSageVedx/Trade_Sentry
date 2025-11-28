@@ -115,14 +115,14 @@ if __name__ == "__main__":
 
     try:
         model = tf.keras.models.load_model("app/models/lstm_model.h5")
-        print("✅ Model Loaded Directly")
+        print("Model Loaded Directly")
     except:
-        print("❌ Could not load model from app/models/lstm_model.h5")
+        print("Could not load model.")
         exit()
 
     # 2. Fetch Data
     ticker = "TATASTEEL.NS"
-    print(f"📥 Fetching data for {ticker}...")
+    print(f"Fetching data for {ticker}...")
     df = yf.download(ticker, period="1y", progress=False)
     
     # 3. Process Data (Same logic as before, just inline)
@@ -161,7 +161,7 @@ if __name__ == "__main__":
     }
     
     # 6. Run LLM
-    print("🧠 Asking AI Analyst...")
+    print("Asking AI Analyst...")
     verdict = get_ai_verdict(ticker, current_price, pivots, trend, "Neutral")
     
     print("\n" + "="*40)

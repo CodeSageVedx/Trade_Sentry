@@ -18,7 +18,7 @@ def get_stock_data(ticker, period="2y"):
         df = yf.download(ticker, period=period, progress=False, multi_level_index=False)
         
         if df.empty:
-            print(f"❌ No data found for {ticker}")
+            print(f"No data found for {ticker}")
             return None
 
         # Ensure we have the right columns

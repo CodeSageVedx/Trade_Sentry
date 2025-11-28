@@ -21,11 +21,11 @@ def load_ai_models():
     try:
         if os.path.exists(MODEL_PATH):
             lstm_model = tf.keras.models.load_model(MODEL_PATH)
-            print(f"✅ LSTM Model loaded from {MODEL_PATH}")
+            print(f"LSTM Model loaded from {MODEL_PATH}")
         else:
-            print(f"⚠️ Model file not found at {MODEL_PATH}. Please run train_model.py first.")
+            print(f"Model file not found at {MODEL_PATH}. Please run train_model.py first.")
     except Exception as e:
-        print(f"❌ Error loading LSTM model: {e}")
+        print(f"Error loading LSTM model: {e}")
 
 # Load models at startup
 load_ai_models()

@@ -17,7 +17,7 @@ try:
         max_tokens=500
     )
 except Exception as e:
-    print(f"❌ Error initializing ChatGroq: {e}")
+    print(f"Error initializing ChatGroq: {e}")
     llm = None
 
 def get_chat_response(ticker, query, context_data):
@@ -62,7 +62,7 @@ def get_chat_response(ticker, query, context_data):
         response = chain.invoke({"input": query})
         return response.content
     except Exception as e:
-        print(f"❌ LLM Invocation Error: {str(e)}")
+        print(f"LLM Invocation Error: {str(e)}")
         return f"Error: {str(e)}"
 
 # --- TEST ---

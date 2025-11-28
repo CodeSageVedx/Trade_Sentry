@@ -34,7 +34,7 @@ class ChatRequest(BaseModel):
 # --- ENDPOINTS ---
 @app.get("/")
 def read_root():
-    return {"status": "TradeSentry System Online 🟢"}
+    return {"status": "TradeSentry System Online"}
 
 @app.get("/api/analyze/{ticker}")
 async def analyze_stock(ticker: str):
