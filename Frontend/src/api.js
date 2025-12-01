@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const VITE_API_URL = 'https://trade-sentry-backend.onrender.com';
+const VITE_API_URL = 'https://monet-courtly-nonconvertibly.ngrok-free.dev';
 
 export const analyzeStock = async (ticker) => {
   try {

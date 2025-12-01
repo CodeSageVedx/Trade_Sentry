@@ -33,7 +33,7 @@ function App() {
   useEffect(() => {
     if (!data?.symbol) return;
 
-    const ws = new WebSocket(`wss://trade-sentry-backend.onrender.com/ws/price/${data.symbol}`);
+    const ws = new WebSocket(`wss://monet-courtly-nonconvertibly.ngrok-free.dev/ws/price/${data.symbol}`);
     
     ws.onopen = () => {
         console.log("✅ Connected to Live Price Feed");
