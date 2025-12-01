@@ -4,16 +4,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yfinance as yf
 
-# 1. Data Engine (Math & Prices)
-from app.services.marketData import get_pivot_points, get_stock_data, get_full_chart_data
-# 2. AI Models (LSTM Trend)
-from app.services.ai_engine import predict_trend
-# 3. News Agent (FinBERT Sentiment)
-from app.services.news_agent import get_news_sentiment
-# 4. LLM Analysis (The Verdict)
-from app.services.llm_engine import get_ai_verdict
-# 5. Chatbot (Q&A)
-from app.services.question_agent import get_chat_response
+# # 1. Data Engine (Math & Prices)
+# from app.services.marketData import get_pivot_points, get_stock_data, get_full_chart_data
+# # 2. AI Models (LSTM Trend)
+# from app.services.ai_engine import predict_trend
+# # 3. News Agent (FinBERT Sentiment)
+# from app.services.news_agent import get_news_sentiment
+# # 4. LLM Analysis (The Verdict)
+# from app.services.llm_engine import get_ai_verdict
+# # 5. Chatbot (Q&A)
+# from app.services.question_agent import get_chat_response
 
 app = FastAPI()
 # --- MIDDLEWARE ---
@@ -43,6 +43,12 @@ async def analyze_stock(ticker: str):
     Fetches Price + Math + Trend + News + AI Verdict in one go.
     """
     print(f"🚀 Analyzing {ticker}...")
+
+     # Lazy Import Services (Load only when requested)
+    from app.services.marketData import get_pivot_points, get_stock_data, get_full_chart_data
+    from app.services.ai_engine import predict_trend
+    from app.services.news_agent import get_news_sentiment
+    from app.services.llm_engine import get_ai_verdict
 
     pivots = get_pivot_points(ticker)
     if not pivots: 
@@ -105,6 +111,7 @@ async def websocket_endpoint(websocket: WebSocket, ticker: str):
     Simulates a real-time feed by polling Yahoo every 2 seconds.
     """
     await websocket.accept()
+    from app.services.market_data import get_pivot_points
     try:
         while True:
             data = get_pivot_points(ticker)
