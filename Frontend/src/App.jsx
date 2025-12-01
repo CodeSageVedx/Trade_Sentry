@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Navbar from './components/Navbar';
-import SearchBar from './components/SearchBar';
+import SearchBar from './components/Searchbar';
 import StockChart from './components/StockChart';
 import { analyzeStock, askChatbot } from './api';
 import { ArrowUpCircle, ArrowDownCircle, MessageSquare, Activity, Target, ShieldAlert, Clock } from 'lucide-react';
@@ -33,7 +33,6 @@ function App() {
   useEffect(() => {
     if (!data?.symbol) return;
 
-    // CORRECT URL FORMAT: wss://<your-domain>/ws/price/<ticker>
     const ws = new WebSocket(`wss://trade-sentry-backend.onrender.com/ws/price/${data.symbol}`);
     
     ws.onopen = () => {
