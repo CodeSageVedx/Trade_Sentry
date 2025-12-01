@@ -32,11 +32,29 @@ function App() {
 
   useEffect(() => {
     if (!data?.symbol) return;
-    const ws = new WebSocket(`ws://127.0.0.1:8000/ws/price/${data.symbol}`);
-    ws.onmessage = (event) => {
-      const message = JSON.parse(event.data);
-      if (message.price) setLivePrice(message.price);
+
+    // CORRECT URL FORMAT: wss://<your-domain>/ws/price/<ticker>
+    const ws = new WebSocket(`wss://trade-sentry-backend.onrender.com/ws/price/${data.symbol}`);
+    
+    ws.onopen = () => {
+        console.log("✅ Connected to Live Price Feed");
     };
+
+    ws.onmessage = (event) => {
+      try {
+          const message = JSON.parse(event.data);
+          if (message.price) {
+            setLivePrice(message.price);
+          }
+      } catch (e) {
+          console.error("WebSocket Parse Error:", e);
+      }
+    };
+
+    ws.onerror = (error) => {
+        console.error("WebSocket Error:", error);
+    };
+
     return () => ws.close();
   }, [data?.symbol]);
 

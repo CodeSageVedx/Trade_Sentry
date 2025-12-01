@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-const API_URL = 'http://127.0.0.1:8000';
+const VITE_API_URL = 'https://trade-sentry-backend.onrender.com';
 
 export const analyzeStock = async (ticker) => {
   try {
-    const response = await axios.get(`${API_URL}/api/analyze/${ticker}`);
+    const response = await axios.get(`${VITE_API_URL}/api/analyze/${ticker}`);
     return response.data;
   } catch (error) {
     console.error("API Error:", error);
@@ -14,7 +14,7 @@ export const analyzeStock = async (ticker) => {
 
 export const askChatbot = async (ticker, question, contextData) => {
   try {
-    const response = await axios.post(`${API_URL}/api/chat`, {
+    const response = await axios.post(`${VITE_API_URL}/api/chat`, {
       ticker,
       question,
       context_data: contextData
