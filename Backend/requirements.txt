@@ -12,3 +12,5 @@ langchain
 langchain-core
 langchain-groq
 tensorflow==2.15.0
+transformers
+torch
