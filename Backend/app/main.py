@@ -5,7 +5,7 @@ from pydantic import BaseModel
 import yfinance as yf
 
 # 1. Data Engine (Math & Prices)
-from app.services.marketData import get_pivot_points, get_stock_data
+from app.services.marketData import get_pivot_points, get_stock_data, get_full_chart_data
 # 2. AI Models (LSTM Trend)
 from app.services.ai_engine import predict_trend
 # 3. News Agent (FinBERT Sentiment)
@@ -47,6 +47,7 @@ async def analyze_stock(ticker: str):
     pivots = get_pivot_points(ticker)
     if not pivots: 
         return {"error": "Invalid Ticker or Data Unavailable"}
+   
     # 2. Trend Analysis (AI Engine)
     hist = get_stock_data(ticker, period="1y")
     
@@ -55,7 +56,14 @@ async def analyze_stock(ticker: str):
         trend = predict_trend(closes)
     else:
         trend = {"signal": "NEUTRAL", "confidence": 0}
-        
+
+    chart_data = get_full_chart_data(ticker)
+    if '1Y' in chart_data and len(chart_data['1Y']) > 60:
+        # Extract closing prices from the list of dicts
+        closes = [item['close'] for item in chart_data['1Y'][-100:]]
+        trend = predict_trend(closes)
+
+
     # 3. Sentiment (News Agent)
     sentiment = get_news_sentiment(pivots['symbol'])
 
@@ -75,8 +83,11 @@ async def analyze_stock(ticker: str):
         "trend_signal": trend,
         "sentiment_signal": sentiment,
         "support_resistance": pivots,
-        "ai_analysis": ai_analysis
-    }
+        "ai_analysis": ai_analysis,
+        "chart_data": chart_data
+        }
+
+
 
 @app.post("/api/chat")
 async def chat_endpoint(request: ChatRequest):
@@ -112,3 +123,4 @@ async def websocket_endpoint(websocket: WebSocket, ticker: str):
             await websocket.close()
         except:
             pass
+

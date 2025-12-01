@@ -9,34 +9,70 @@ def validate_indian_ticker(ticker):
         ticker = f"{ticker}.NS"
     return ticker
 
-def get_stock_data(ticker, period="2y"):
+def get_stock_data(ticker, period="2y", interval="1d"):
     ticker = validate_indian_ticker(ticker)
     
     try:
-        # SIMPLIFIED: Let yfinance handle the session/headers internally
-        # usage of custom session is what caused the crash
-        df = yf.download(ticker, period=period, progress=False, multi_level_index=False)
+        df = yf.download(ticker, period=period, interval=interval, progress=False, multi_level_index=False)
         
         if df.empty:
-            print(f"No data found for {ticker}")
             return None
 
-        # Ensure we have the right columns
         required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
         
-        # Flatten MultiIndex if it exists (common in new yfinance versions)
         if isinstance(df.columns, pd.MultiIndex):
             df.columns = df.columns.get_level_values(0)
             
-        # Verify columns exist
-        if not all(col in df.columns for col in required_cols):
-            return None
-            
-        return df[required_cols]
+        # Filter valid columns only
+        available_cols = [col for col in required_cols if col in df.columns]
+        return df[available_cols]
 
     except Exception as e:
         print(f"Data Fetch Error: {e}")
         return None
+
+def get_full_chart_data(ticker):
+
+    ticker = validate_indian_ticker(ticker)
+    
+    datasets = {}
+    
+    # 1. Intraday (Today)
+    df_1d = get_stock_data(ticker, period="1d", interval="1m")
+    if df_1d is not None:
+        last_active_date = df_1d.index[-1].date()
+        daily_mask = df_1d.index.date == last_active_date
+        df_1d_clean = df_1d[daily_mask]
+        datasets['1D'] = df_1d_clean.reset_index().apply(lambda x: {
+            "time": x.iloc[0].isoformat(), 
+            "open": x['Open'], "high": x['High'], "low": x['Low'], "close": x['Close']
+        }, axis=1).tolist()
+        
+    # 2. Weekly (5 Days)
+    df_5d = get_stock_data(ticker, period="5d", interval="5m")
+    if df_5d is not None:
+        datasets['5D'] = df_5d.reset_index().apply(lambda x: {
+            "time": x.iloc[0].isoformat(), 
+            "open": x['Open'], "high": x['High'], "low": x['Low'], "close": x['Close']
+        }, axis=1).tolist()
+
+    # 3. Monthly (1 Month)
+    df_1m = get_stock_data(ticker, period="1mo", interval="60m")
+    if df_1m is not None:
+        datasets['1M'] = df_1m.reset_index().apply(lambda x: {
+            "time": x.iloc[0].isoformat(), 
+            "open": x['Open'], "high": x['High'], "low": x['Low'], "close": x['Close']
+        }, axis=1).tolist()
+
+    # 4. Yearly (Daily Candles)
+    df_1y = get_stock_data(ticker, period="1y", interval="1d")
+    if df_1y is not None:
+        datasets['1Y'] = df_1y.reset_index().apply(lambda x: {
+            "time": x.iloc[0].isoformat(), 
+            "open": x['Open'], "high": x['High'], "low": x['Low'], "close": x['Close']
+        }, axis=1).tolist()
+        
+    return datasets
 
 def get_pivot_points(ticker):
     ticker = validate_indian_ticker(ticker)

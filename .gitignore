@@ -40,4 +40,3 @@ yfinance.cache
 .mypy_cache/
 .vscode/
 .idea/
-frontend/
