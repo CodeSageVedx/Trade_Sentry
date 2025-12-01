@@ -124,3 +124,11 @@ async def websocket_endpoint(websocket: WebSocket, ticker: str):
         except:
             pass
 
+
+if __name__ == "__main__":
+    import uvicorn
+    import os
+    # Render provides PORT env variable. Default to 10000 if missing.
+    port = int(os.environ.get("PORT", 10000))
+    uvicorn.run(app, host="0.0.0.0", port=port)
+
