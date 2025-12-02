@@ -1,14 +1,7 @@
 import yfinance as yf
 import pandas as pd
 import numpy as np
-import os
-
-# --- CACHE CLEANUP ---
-if os.path.exists('yfinance.cache.sqlite'):
-    try:
-        os.remove('yfinance.cache.sqlite')
-    except Exception:
-        pass
+import requests
 
 def validate_indian_ticker(ticker):
     ticker = ticker.upper().strip().replace(" ", "")
@@ -18,22 +11,36 @@ def validate_indian_ticker(ticker):
 
 def get_stock_data(ticker, period="2y", interval="1d"):
     ticker = validate_indian_ticker(ticker)
+    
+    # REMOVED: Custom session creation which caused the conflict with new yfinance versions
+    # session = requests.Session()
+    # session.headers.update({...})
+
     try:
-        # SAFE MODE: Removed 'multi_level_index' argument
+        # SAFE DOWNLOAD: Removed 'session' argument to let yfinance handle it internally
+        # Removed 'multi_level_index' to support older yfinance versions on Render if necessary
+        # (Newer versions handle the default well, or we fix columns manually below)
         df = yf.download(ticker, period=period, interval=interval, progress=False)
         
         if df.empty: return None
 
-        # Manual MultiIndex Flattening (Works on old & new versions)
+        # --- UNIVERSAL COLUMN FLATTENING ---
+        # This block handles BOTH old yfinance (flat columns) and new yfinance (MultiIndex columns)
         if isinstance(df.columns, pd.MultiIndex):
             try:
-                # Try to get level 0 (Price)
-                df.columns = df.columns.get_level_values(0)
+                # If columns are ('Close', 'TATASTEEL.NS'), we want just 'Close'
+                # We check if the level 0 contains the price headers
+                if 'Close' in df.columns.get_level_values(0):
+                    df.columns = df.columns.get_level_values(0)
+                else:
+                    # Otherwise, maybe level 1 has them?
+                    df.columns = df.columns.get_level_values(1)
             except:
-                # Fallback: Collapse columns
-                df.columns = ['_'.join(col).strip() for col in df.columns.values]
+                pass # If flattening fails, we assume columns are already correct-ish
 
         required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
+        
+        # Double check if we have the columns we need
         available_cols = [col for col in required_cols if col in df.columns]
         
         if not available_cols: return None
@@ -110,7 +117,7 @@ def get_pivot_points(ticker):
         }
     except Exception:
         return None
-    
+
 if __name__ == "__main__":
     # Test the "Snap-to-Last-Day" logic
     print("Testing Pivot Points for RELIANCE...")
