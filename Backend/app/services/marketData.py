@@ -17,38 +17,44 @@ def validate_indian_ticker(ticker):
     return ticker
 
 def get_stock_data(ticker, period="2y", interval="1d"):
+    """
+    Robust fetcher using Ticker.history first (more stable), then download as fallback.
+    """
     ticker = validate_indian_ticker(ticker)
     
     try:
-        # SAFE DOWNLOAD:
-        # Removed 'session' argument to let yfinance handle authentication internally
-        # Kept 'threads=False' for server stability
+        # ATTEMPT 1: Use Ticker.history (Often bypasses bot checks better)
+        stock = yf.Ticker(ticker)
+        df = stock.history(period=period, interval=interval)
         
-        try:
-            df = yf.download(
-                ticker, 
-                period=period, 
-                interval=interval, 
-                progress=False, 
-                threads=False,
-                multi_level_index=False
-            )
-        except TypeError:
-            # Fallback for older yfinance versions
-            df = yf.download(
-                ticker, 
-                period=period, 
-                interval=interval, 
-                progress=False, 
-                threads=False
-            )
-        
+        # ATTEMPT 2: Fallback to yf.download if history returns empty
+        if df.empty:
+            print(f"⚠️ Ticker.history empty for {ticker}, trying direct download...")
+            try:
+                df = yf.download(
+                    ticker, 
+                    period=period, 
+                    interval=interval, 
+                    progress=False,
+                    multi_level_index=False
+                )
+            except TypeError:
+                # Handle older yfinance versions that don't support multi_level_index
+                df = yf.download(
+                    ticker, 
+                    period=period, 
+                    interval=interval, 
+                    progress=False
+                )
+
         if df.empty:
             return None
 
-        # --- UNIVERSAL COLUMN FLATTENING ---
+        # --- DATA CLEANING & FLATTENING ---
+        # 1. Handle MultiIndex Columns (Common in new yfinance)
         if isinstance(df.columns, pd.MultiIndex):
             try:
+                # Try to get the level containing 'Close'
                 if 'Close' in df.columns.get_level_values(0):
                     df.columns = df.columns.get_level_values(0)
                 else:
@@ -56,6 +62,7 @@ def get_stock_data(ticker, period="2y", interval="1d"):
             except:
                 pass
 
+        # 2. Ensure Required Columns Exist
         required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
         available_cols = [col for col in required_cols if col in df.columns]
         
