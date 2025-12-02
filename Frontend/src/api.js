@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const VITE_API_URL = 'https://monet-courtly-nonconvertibly.ngrok-free.dev';
+const VITE_API_URL = 'http://127.0.0.1:8000';
 
 export const analyzeStock = async (ticker) => {
   try {
