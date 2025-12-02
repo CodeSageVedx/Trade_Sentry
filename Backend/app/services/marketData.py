@@ -17,44 +17,27 @@ def validate_indian_ticker(ticker):
     return ticker
 
 def get_stock_data(ticker, period="2y", interval="1d"):
-    """
-    Robust fetcher that handles different yfinance versions
-    """
     ticker = validate_indian_ticker(ticker)
-    
     try:
-        # Try fetching with the new parameter (for yfinance >= 0.2.40)
-        try:
-            df = yf.download(ticker, period=period, interval=interval, progress=False, multi_level_index=False)
-        except TypeError:
-            # Fallback for older yfinance versions that don't support multi_level_index
-            print(f"⚠️ Old yfinance detected, retrying standard download for {ticker}...")
-            df = yf.download(ticker, period=period, interval=interval, progress=False)
-
-        if df.empty:
-            return None
-
-        required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
+        # SAFE MODE: Removed 'multi_level_index' argument
+        df = yf.download(ticker, period=period, interval=interval, progress=False)
         
-        # Handle MultiIndex columns manually if the parameter didn't work or wasn't supported
+        if df.empty: return None
+
+        # Manual MultiIndex Flattening (Works on old & new versions)
         if isinstance(df.columns, pd.MultiIndex):
             try:
-                # Try to flatten by dropping the top level (Ticker name)
+                # Try to get level 0 (Price)
                 df.columns = df.columns.get_level_values(0)
-                # If columns are still not right (e.g. Price, Ticker), try level 1
-                if 'Close' not in df.columns:
-                     df.columns = df.columns.get_level_values(1)
-            except Exception as e:
-                print(f"Column Flatten Error: {e}")
-                return None
-            
-        # Verify columns exist
+            except:
+                # Fallback: Collapse columns
+                df.columns = ['_'.join(col).strip() for col in df.columns.values]
+
+        required_cols = ['Open', 'High', 'Low', 'Close', 'Volume']
         available_cols = [col for col in required_cols if col in df.columns]
         
-        if not available_cols: 
-            print(f"❌ Missing columns for {ticker}: Found {df.columns}")
-            return None
-            
+        if not available_cols: return None
+        
         return df[available_cols]
 
     except Exception as e:
@@ -127,3 +110,8 @@ def get_pivot_points(ticker):
         }
     except Exception:
         return None
+    
+if __name__ == "__main__":
+    # Test the "Snap-to-Last-Day" logic
+    print("Testing Pivot Points for RELIANCE...")
+    print(get_pivot_points("RELIANCE"))
