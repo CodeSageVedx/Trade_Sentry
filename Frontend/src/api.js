@@ -1,10 +1,10 @@
 import axios from 'axios';
 
-const VITE_API_URL = 'http://127.0.0.1:8000';
+const API_URL = import.meta.env.VITE_API_URL;
 
 export const analyzeStock = async (ticker) => {
   try {
-    const response = await axios.get(`${VITE_API_URL}/api/analyze/${ticker}`);
+    const response = await axios.get(`${API_URL}/api/analyze/${ticker}`);
     return response.data;
   } catch (error) {
     console.error("API Error:", error);

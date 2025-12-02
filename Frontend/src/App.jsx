@@ -33,7 +33,9 @@ function App() {
   useEffect(() => {
     if (!data?.symbol) return;
 
-    const ws = new WebSocket(`ws://127.0.0.1:8000/ws/price/${data.symbol}`);
+    const WS_BASE_URL = import.meta.env.VITE_WS_URL;
+    const wsUrl = `${WS_BASE_URL}/ws/price/${data.symbol}`;
+    const ws = new WebSocket(wsUrl);
     
     ws.onopen = () => {
         console.log("✅ Connected to Live Price Feed");
