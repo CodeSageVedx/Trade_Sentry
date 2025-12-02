@@ -44,7 +44,7 @@ async def analyze_stock(ticker: str):
     print(f"🚀 Analyzing {ticker}...")
 
     # Lazy imports to keep startup fast
-    from app.services.market_data import get_pivot_points, get_stock_data, get_full_chart_data
+    from app.services.marketData import get_pivot_points, get_stock_data, get_full_chart_data
     from app.services.ai_engine import predict_trend      # Now calls AWS
     from app.services.news_agent import get_news_sentiment # Now calls AWS
     from app.services.llm_engine import get_ai_verdict
